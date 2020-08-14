@@ -4,13 +4,17 @@ A library for moving around a sequence (list/array/tuple) in Janet.
 
 ## Usage
 
-1. Add this a dependency in your `project.janet` file.
+1. Add this a dependency in your `project.janet` file and install deps.
 
 ```clojure
 (declare-project
   :name "my-project"
   :description "my project"
   :dependencies ["https://github.com/corasaurus-hex/janet-sequence-cursor"])
+```
+
+```sh
+jpm deps
 ```
 
 2. Import the module.
