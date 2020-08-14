@@ -17,8 +17,8 @@
   (< (cursor :position) (cursor :max-position)))
 
 (defn next
-  `Moves the cursor to the next position and returns the element the cursor has
-  moved to.
+  `Moves the cursor to the next position and returns the element the
+  cursor has moved to.
 
   Raises an error if there is no next position.
 
@@ -50,8 +50,8 @@
   (:seek? cursor -1))
 
 (defn prev
-  `Moves the cursor to the previous position and returns the element the cursor
-  has moved to.
+  `Moves the cursor to the previous position and returns the element the
+  cursor has moved to.
 
   Raises an error if there is no previous position.
 
@@ -70,6 +70,18 @@
   (:seek cursor -1)
   (:curr cursor))
 
+(defn curr?
+  `Determines if there is a current element the cursor is positioned at.
+
+  Example
+
+  (:curr? (make [1 2 3]))
+  # => false
+  (:curr (make [1 2 3] 1))
+  # => true`
+  [cursor]
+  (not= (cursor :position) -1))
+
 (defn curr
   `Returns the element the cursor currently is positioned at.
 
@@ -86,21 +98,24 @@
     (error "sequence-cursor: no current element"))
   (get-in cursor [:sequence (cursor :position)]))
 
-(defn curr?
-  `Determines if there is a current element the cursor is positioned at.
+(defn seek?
+  `Determines if the cursor can seek to an offset.
 
   Example
 
-  (:curr? (make [1 2 3]))
-  # => false
-  (:curr (make [1 2 3] 1))
-  # => true`
-  [cursor]
-  (not= (cursor :position) -1))
+  (def sc (make [1 2 3] 1))
+  (:seek? sc 1)
+  # => true
+  (:seek? sc -1)
+  # => true
+  (:seek? sc 10)
+  # => false`
+  [cursor offset]
+  (:move? cursor (+ offset (cursor :position))))
 
 (defn seek
-  `Moves the cursor by a count of offset. Positive numbers move nextward,
-  negative prevward.
+  `Moves the cursor by a count of offset. Positive numbers move
+  nextward, negative prevward.
 
   Raises an error if the offset is not seekable.
 
@@ -118,20 +133,23 @@
     (errorf "sequence-cursor: unable to seek %d" offset))
   (:move cursor (+ offset (cursor :position))))
 
-(defn seek?
-  `Determines if the cursor can seek to an offset.
+(defn move?
+  `Determines if the cursor can move to a position.
 
   Example
 
-  (def sc (make [1 2 3] 1))
-  (:seek? sc 1)
+  (def sc (make [1 2 3]))
+  (:move? sc 0)
   # => true
-  (:seek? sc -1)
+  (:move? sc 2)
   # => true
-  (:seek? sc 10)
+  (:move? sc 10)
   # => false`
-  [cursor offset]
-  (:move? cursor (+ offset (cursor :position))))
+  [cursor position]
+  (<=
+    0
+    position
+    (cursor :max-position)))
 
 (defn move
   `Moves the cursor to an absolute position, zero-indexed.
@@ -153,24 +171,6 @@
   (put cursor :position position)
   (:curr cursor))
 
-(defn move?
-  `Determines if the cursor can move to a position.
-
-  Example
-
-  (def sc (make [1 2 3]))
-  (:move? sc 0)
-  # => true
-  (:move? sc 2)
-  # => true
-  (:move? sc 10)
-  # => false`
-  [cursor position]
-  (<=
-    0
-    position
-    (cursor :max-position)))
-
 (def Cursor
   @{:sequence nil
     :position -1
@@ -187,9 +187,10 @@
     :move? move?})
 
 (defn make
-  `Makes a sequence cursor using the passed-in sequence. An optional position can
-  be used as a starting point, zero-indexed. The default starting position is -1,
-  meaning your first call of :next will return the first item in the sequence.
+  `Makes a sequence cursor using the passed-in sequence. An optional
+  position can be used as a starting point, zero-indexed. The default
+  starting position is -1, meaning your first call of :next will return
+  the first item in the sequence.
 
   Example
 
