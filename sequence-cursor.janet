@@ -171,6 +171,42 @@
   (put cursor :position position)
   (:curr cursor))
 
+(defn peek
+  `Returns the element offset positions away from the current position
+  without moving the cursor. Positive numbers move nextward, negative
+  prevward.
+
+  Raises an error if the offset is not seekable.
+
+  Example
+
+  (def sc (make [:a :b :c]))
+  (:peek sc 2)
+  # => :b
+  (:peek sc 1)
+  # => :a
+  (:seek sc 10)
+  # error "sequence-cursor: unable to seek 10"`
+  [cursor offset]
+  (when (not (:peek? cursor offset))
+    (errorf "sequence-cursor: unable to peek %d" offset))
+  (get-in cursor [:iterable (+ offset (cursor :position))]))
+
+(defn peek?
+  `Determines if the cursor can peek at an offset.
+
+  Example
+
+  (def sc (make [1 2 3] 1))
+  (:peek? sc 1)
+  # => true
+  (:peek? sc -1)
+  # => true
+  (:peek? sc 10)
+  # => false`
+  [cursor offset]
+  (:move? cursor (+ offset (cursor :position))))
+
 (def Cursor
   @{:sequence nil
     :position -1
