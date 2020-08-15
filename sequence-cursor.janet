@@ -171,6 +171,21 @@
   (put cursor :position position)
   (:curr cursor))
 
+(defn peek?
+  `Determines if the cursor can peek at an offset.
+
+  Example
+
+  (def sc (make [1 2 3] 1))
+  (:peek? sc 1)
+  # => true
+  (:peek? sc -1)
+  # => true
+  (:peek? sc 10)
+  # => false`
+  [cursor offset]
+  (:move? cursor (+ offset (cursor :position))))
+
 (defn peek
   `Returns the element offset positions away from the current position
   without moving the cursor. Positive numbers move nextward, negative
@@ -190,37 +205,63 @@
   [cursor offset]
   (when (not (:peek? cursor offset))
     (errorf "sequence-cursor: unable to peek %d" offset))
-  (get-in cursor [:iterable (+ offset (cursor :position))]))
+  (get-in cursor [:sequence (+ offset (cursor :position))]))
 
-(defn peek?
-  `Determines if the cursor can peek at an offset.
+(defn get?
+  `Determines if the cursor has an element at an absolute position.
 
   Example
 
-  (def sc (make [1 2 3] 1))
-  (:peek? sc 1)
+  (def sc (make [1 2 3]))
+  (:get? sc 0)
   # => true
-  (:peek? sc -1)
+  (:get? sc 2)
   # => true
-  (:peek? sc 10)
+  (:get? sc 10)
   # => false`
-  [cursor offset]
-  (:move? cursor (+ offset (cursor :position))))
+  [cursor position]
+  (<=
+    0
+    position
+    (cursor :max-position)))
+
+(defn get
+  `Returns the element at an absolute position, zero-indexed.
+
+  Raises an error if there is no element at the position.
+
+  Example
+
+  (def sc (make [:a :b :c]))
+  (:get sc 2)
+  # => :c
+  (:get sc 1)
+  # => :a
+  (:get sc 10)
+  # error "sequence-cursor: cannot get 10"`
+  [cursor position]
+  (when (not (:get? cursor position))
+    (errorf "sequence-cursor: cannot get %d" position))
+  (get-in cursor [:sequence position]))
 
 (def Cursor
   @{:sequence nil
     :position -1
     :max-position nil
-    :next next
     :next? next?
-    :prev prev
+    :next next
     :prev? prev?
-    :curr curr
+    :prev prev
     :curr? curr?
-    :seek seek
+    :curr curr
     :seek? seek?
+    :seek seek
+    :move? move?
     :move move
-    :move? move?})
+    :peek? peek?
+    :peek peek
+    :get? get?
+    :get get})
 
 (defn make
   `Makes a sequence cursor using the passed-in sequence. An optional
